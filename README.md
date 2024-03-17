@@ -1,4 +1,33 @@
 # softether-ec2
+
+## Prerequisites
+
+1. Terraform をインストールしてください。
+
+   - https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+
+1. 次の環境変数を設定してください。
+   - AWS_ACCESS_KEY_ID
+   - AWS_SECRET_ACCESS_KEY
+
+## Getting Started
+
+次のコマンドで EC2 を構築してください。
+
+```sh
+terraform plan
+terraform apply -auto-approve
+```
+
+SSH で EC2 にアクセスし、SoftEther のセットアップを実施してください。
+
+```sh
+cd /opt/softether/vpnserver
+make
+sudo ./vpnserver start
+```
+
+<!-- prettier-ignore-start -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -39,3 +68,4 @@ No inputs.
 | <a name="output_ami"></a> [ami](#output\_ami) | AWS AMI |
 | <a name="output_ssh"></a> [ssh](#output\_ssh) | ssh command |
 <!-- END_TF_DOCS -->
+<!-- prettier-ignore-end -->
