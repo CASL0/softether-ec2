@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/terraform-docs/terraform-docs
+    rev: "v0.17.0"
+    hooks:
+      - id: terraform-docs-system
+        name: terraform-docs
+        language: system
+        entry: terraform-docs
+        args: ["markdown", "table", "--output-file", "README.md", "."]
