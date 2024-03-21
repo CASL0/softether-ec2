@@ -47,24 +47,7 @@ module "security_group" {
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["ssh-tcp"]
-
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 500
-      to_port     = 500
-      protocol    = "udp"
-      description = "Internet Key Exchange (IKE)"
-      cidr_blocks = "0.0.0.0/0"
-    },
-    {
-      from_port   = 4500
-      to_port     = 4500
-      protocol    = "udp"
-      description = "NAT traversal"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
+  ingress_rules       = ["ssh-tcp", "ipsec-500-udp", "ipsec-4500-udp"]
 
   egress_rules = ["all-all"]
 
