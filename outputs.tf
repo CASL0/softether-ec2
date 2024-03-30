@@ -5,5 +5,5 @@ output "ami" {
 
 output "ssh" {
   description = "ssh command"
-  value       = "ssh ec2-user@${module.ec2.public_ip}"
+  value       = "ssh ec2-user@${module.vpn_ec2.public_ip}"
 }

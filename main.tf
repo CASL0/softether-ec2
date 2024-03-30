@@ -38,16 +38,43 @@ module "vpc" {
   tags = local.tags
 }
 
-module "security_group" {
+module "ssh_security_group" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "~> 5.0"
 
-  name        = "security-group"
-  description = "Security group that allows SSH, IPSec access"
+  name        = "security-group for ssh"
+  description = "Security group that allows SSH access"
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["ssh-tcp", "ipsec-500-udp", "ipsec-4500-udp"]
+  ingress_rules       = ["ssh-tcp"]
+
+  tags = local.tags
+}
+
+module "vpn_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.0"
+
+  name        = "security-group for vpn"
+  description = "Security group that allows VPN access"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+
+  # IPsec と Ethernet over HTTPS を許可
+  ingress_rules = ["ipsec-500-udp", "ipsec-4500-udp", "https-443-tcp"]
+
+  tags = local.tags
+}
+
+module "outbound_security_group" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "~> 5.0"
+
+  name        = "security-group for outbound"
+  description = "Security group that allows all outbound accesses"
+  vpc_id      = module.vpc.vpc_id
 
   egress_rules = ["all-all"]
 
@@ -70,7 +97,7 @@ data "aws_ami" "amazon_linux" {
   owners = ["amazon"]
 }
 
-module "ec2" {
+module "vpn_ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 5.0"
 
@@ -82,7 +109,9 @@ module "ec2" {
   availability_zone = element(module.vpc.azs, 0)
   subnet_id         = element(module.vpc.public_subnets, 0)
   vpc_security_group_ids = [
-    module.security_group.security_group_id
+    module.ssh_security_group.security_group_id,
+    module.vpn_security_group.security_group_id,
+    module.outbound_security_group.security_group_id,
   ]
   associate_public_ip_address = true
 
