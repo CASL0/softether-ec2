@@ -27,6 +27,10 @@ make
 sudo ./vpnserver start
 ```
 
+## 構成
+
+<img src="https://raw.githubusercontent.com/CASL0/softether-ec2/images/infra.svg">
+
 <!-- prettier-ignore-start -->
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
