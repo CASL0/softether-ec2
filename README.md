@@ -47,6 +47,7 @@ sudo ./vpnserver start
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_outbound_security_group"></a> [outbound\_security\_group](#module\_outbound\_security\_group) | terraform-aws-modules/security-group/aws | ~> 5.0 |
+| <a name="module_proxy_ec2"></a> [proxy\_ec2](#module\_proxy\_ec2) | terraform-aws-modules/ec2-instance/aws | ~> 5.0 |
 | <a name="module_ssh_security_group"></a> [ssh\_security\_group](#module\_ssh\_security\_group) | terraform-aws-modules/security-group/aws | ~> 5.0 |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | terraform-aws-modules/vpc/aws | ~> 5.0 |
 | <a name="module_vpn_ec2"></a> [vpn\_ec2](#module\_vpn\_ec2) | terraform-aws-modules/ec2-instance/aws | ~> 5.0 |

@@ -3,7 +3,7 @@ locals {
   cidr = "10.0.0.0/24"
   azs  = slice(data.aws_availability_zones.available.names, 0, 1)
 
-  user_data = <<-EOF
+  vpnserver_user_data = <<-EOF
     #!/bin/bash
     yum -y update
     yum -y groupinstall "Development Tools"
@@ -15,6 +15,27 @@ locals {
     mkdir -p /opt/softether
     curl -o /opt/softether/softether-vpnserver.tar.gz https://jp.softether-download.com/files/softether/v4.42-9798-rtm-2023.06.30-tree/Linux/SoftEther_VPN_Server/64bit_-_Intel_x64_or_AMD64/softether-vpnserver-v4.42-9798-rtm-2023.06.30-linux-x64-64bit.tar.gz
     tar zxvf /opt/softether/softether-vpnserver.tar.gz -C /opt/softether
+  EOF
+
+  vpnclient_user_data = <<-EOF
+    #!/bin/bash
+    yum -y update
+    yum -y groupinstall "Development Tools"
+    yum -y install \
+      readline-devel \
+      ncurses-devel \
+      openssl-devel \
+      curl
+    mkdir -p /opt/softether
+    curl -o /opt/softether/softether-vpnclient.tar.gz https://jp.softether-download.com/files/softether/v4.42-9798-rtm-2023.06.30-tree/Linux/SoftEther_VPN_Client/64bit_-_Intel_x64_or_AMD64/softether-vpnclient-v4.42-9798-rtm-2023.06.30-linux-x64-64bit.tar.gz
+    tar zxvf /opt/softether/softether-vpnclient.tar.gz -C /opt/softether
+  EOF
+
+  squid_user_data = <<-EOF
+    #!/bin/bash
+    yum -y update && yum -y install squid
+    systemctl enable squid
+    systemctl start squid
   EOF
 
   tags = {
@@ -32,8 +53,12 @@ module "vpc" {
   name = local.name
   cidr = local.cidr
 
-  azs            = local.azs
-  public_subnets = [for k, v in local.azs : cidrsubnet(local.cidr, 4, k)]
+  azs             = local.azs
+  public_subnets  = [for k, v in local.azs : cidrsubnet(local.cidr, 4, k)]
+  private_subnets = [for k, v in local.azs : cidrsubnet(local.cidr, 4, k + 8)]
+
+  enable_nat_gateway = true
+  single_nat_gateway = true
 
   tags = local.tags
 }
@@ -115,7 +140,30 @@ module "vpn_ec2" {
   ]
   associate_public_ip_address = true
 
-  user_data_base64            = base64encode(local.user_data)
+  user_data_base64            = base64encode(local.vpnserver_user_data)
+  user_data_replace_on_change = true
+
+  tags = local.tags
+}
+
+module "proxy_ec2" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 5.0"
+
+  name          = local.name
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+  key_name      = "ec2-key"
+
+  availability_zone = element(module.vpc.azs, 0)
+  subnet_id         = element(module.vpc.private_subnets, 0)
+  vpc_security_group_ids = [
+    module.ssh_security_group.security_group_id,
+    module.vpn_security_group.security_group_id,
+    module.outbound_security_group.security_group_id,
+  ]
+
+  user_data_base64            = base64encode("${local.vpnclient_user_data}\n${local.squid_user_data}")
   user_data_replace_on_change = true
 
   tags = local.tags
