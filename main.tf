@@ -137,7 +137,7 @@ module "vpn_ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 5.0"
 
-  name          = local.name
+  name          = "${local.name}_vpn"
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t2.micro"
   key_name      = "ec2-key"
@@ -161,7 +161,7 @@ module "proxy_ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 5.0"
 
-  name          = local.name
+  name          = "${local.name}_proxy"
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t2.micro"
   key_name      = "ec2-key"
@@ -184,7 +184,7 @@ module "dns_dhcp_ec2" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "~> 5.0"
 
-  name          = local.name
+  name          = "${local.name}_dns_dhcp"
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t2.nano"
   key_name      = "ec2-key"
