@@ -3,6 +3,8 @@ locals {
   cidr = "10.0.0.0/24"
   azs  = slice(data.aws_availability_zones.available.names, 0, 1)
 
+  dnsmasq_conf = file("${path.module}/files/etc/dnsmasq.conf")
+
   vpnserver_user_data = <<-EOF
     #!/bin/bash
     yum -y update
@@ -42,6 +44,7 @@ locals {
     #!/bin/bash
     yum -y update && yum -y install dnsmasq
     echo "nameserver 8.8.8.8" > /etc/resolv.conf 
+    echo "${local.dnsmasq_conf}" > /etc/dnsmasq.conf
     systemctl enable dnsmasq
     systemctl start dnsmasq
   EOF
