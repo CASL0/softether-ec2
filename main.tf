@@ -38,6 +38,14 @@ locals {
     systemctl start squid
   EOF
 
+  dnsmasq_user_data = <<-EOF
+    #!/bin/bash
+    yum -y update && yum -y install dnsmasq
+    echo "nameserver 8.8.8.8" > /etc/resolv.conf 
+    systemctl enable dnsmasq
+    systemctl start dnsmasq
+  EOF
+
   tags = {
     Terraform  = "true"
     Repository = "https://github.com/CASL0/softether-ec2.git"
@@ -164,6 +172,29 @@ module "proxy_ec2" {
   ]
 
   user_data_base64            = base64encode("${local.vpnclient_user_data}\n${local.squid_user_data}")
+  user_data_replace_on_change = true
+
+  tags = local.tags
+}
+
+module "dns_dhcp_ec2" {
+  source  = "terraform-aws-modules/ec2-instance/aws"
+  version = "~> 5.0"
+
+  name          = local.name
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.nano"
+  key_name      = "ec2-key"
+
+  availability_zone = element(module.vpc.azs, 0)
+  subnet_id         = element(module.vpc.private_subnets, 0)
+  vpc_security_group_ids = [
+    module.ssh_security_group.security_group_id,
+    module.vpn_security_group.security_group_id,
+    module.outbound_security_group.security_group_id,
+  ]
+
+  user_data_base64            = base64encode("${local.vpnclient_user_data}\n${local.dnsmasq_user_data}")
   user_data_replace_on_change = true
 
   tags = local.tags
